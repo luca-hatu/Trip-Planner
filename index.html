@@ -10,6 +10,7 @@
 <body>
     <header>
         <h1>Trip Planner</h1>
+        <button id="load-trips"><i class="fas fa-plus"></i> Load Trip</button>
     </header>
     <main>
         <section class="destination-input">
@@ -41,6 +42,28 @@
         </div>
     </div>
 
+    <!-- Add Modal for Saving Trip -->
+    <div id="save-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Save Trip Plan</h2>
+            <input type="text" id="trip-name" placeholder="Enter trip name...">
+            <button id="confirm-save">Save</button>
+        </div>
+    </div>
+
+    <!-- Add Modal for Loading Trips -->
+    <div id="load-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Load Trip Plan</h2>
+            <div id="trip-list">
+                <!-- List of saved trips will appear here -->
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
+

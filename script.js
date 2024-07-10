@@ -9,6 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('summary-modal');
     const summaryContent = document.getElementById('summary-content');
     const span = document.getElementsByClassName('close')[0];
+    const saveModal = document.getElementById('save-modal');
+    const saveSpan = saveModal.getElementsByClassName('close')[0];
+    const confirmSaveButton = document.getElementById('confirm-save');
+    const tripNameInput = document.getElementById('trip-name');
+    const loadModal = document.getElementById('load-modal');
+    const loadSpan = loadModal.getElementsByClassName('close')[0];
+    const loadTripsButton = document.getElementById('load-trips');
+    const tripList = document.getElementById('trip-list');
 
     addPlaceButton.addEventListener('click', () => {
         const place = placeInput.value.trim();
@@ -91,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function saveTripPlan() {
+    function saveTripPlan(tripName) {
         const tripPlan = [];
         const dateContainers = document.querySelectorAll('.date-container');
         dateContainers.forEach(container => {
@@ -105,12 +113,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             tripPlan.push({ date, places });
         });
-        localStorage.setItem('tripPlan', JSON.stringify(tripPlan));
+        const savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || {};
+        savedTrips[tripName] = tripPlan;
+        localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
     }
 
-    function loadTripPlan() {
-        const tripPlan = JSON.parse(localStorage.getItem('tripPlan'));
+    function loadTripPlan(tripName) {
+        const savedTrips = JSON.parse(localStorage.getItem('savedTrips'));
+        const tripPlan = savedTrips[tripName];
         if (tripPlan) {
+            placesListContainer.innerHTML = '';
             tripPlan.forEach(day => {
                 const { date, places } = day;
                 let dateContainer = document.querySelector(`[data-date="${date}"]`);
@@ -192,55 +204,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    loadTripPlan();
+    loadTripsButton.addEventListener('click', () => {
+        tripList.innerHTML = '';
+        const savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || {};
+        for (const tripName in savedTrips) {
+            const tripItem = document.createElement('div');
+            tripItem.textContent = tripName;
+            tripItem.classList.add('trip-item');
+            tripItem.addEventListener('click', () => {
+                loadTripPlan(tripName);
+                loadModal.style.display = 'none';
+            });
+            tripList.appendChild(tripItem);
+        }
+        loadModal.style.display = 'block';
+    });
 
     viewSummaryButton.addEventListener('click', () => {
         summaryContent.innerHTML = '';
-        const tripPlan = JSON.parse(localStorage.getItem('tripPlan'));
-        if (tripPlan) {
-            tripPlan.forEach(day => {
-                const { date, places } = day;
-                const dateDiv = document.createElement('div');
-                const dateTitle = document.createElement('h3');
-                dateTitle.textContent = new Date(date).toDateString();
-                dateDiv.appendChild(dateTitle);
+        const dateContainers = document.querySelectorAll('.date-container');
+        dateContainers.forEach(container => {
+            const date = container.dataset.date;
+            const dateDiv = document.createElement('div');
+            const dateTitle = document.createElement('h3');
+            dateTitle.textContent = new Date(date).toDateString();
+            dateDiv.appendChild(dateTitle);
 
-                const placesList = document.createElement('ul');
-                places.forEach(placeObj => {
-                    const { place, transportMode } = placeObj;
-                    const listItem = document.createElement('li');
-                    const placeName = document.createElement('span');
-                    placeName.textContent = place;
+            const placesList = document.createElement('ul');
+            container.querySelectorAll('li').forEach(item => {
+                const place = item.querySelector('span').textContent;
+                const selectedTransport = item.querySelector('.transportation-buttons .selected i');
+                const transportIcon = selectedTransport ? selectedTransport.cloneNode(true) : null;
+                const listItem = document.createElement('li');
+                const placeName = document.createElement('span');
+                placeName.textContent = place;
 
-                    const transportIcon = document.createElement('i');
-                    switch (transportMode) {
-                        case 'train':
-                            transportIcon.className = 'fas fa-train';
-                            break;
-                        case 'bus':
-                            transportIcon.className = 'fas fa-bus';
-                            break;
-                        case 'bike':
-                            transportIcon.className = 'fas fa-bicycle';
-                            break;
-                        case 'foot':
-                            transportIcon.className = 'fas fa-walking';
-                            break;
-                        default:
-                            transportIcon.className = '';
-                            break;
-                    }
+                listItem.appendChild(placeName);
+                if (transportIcon) {
                     transportIcon.style.marginLeft = '10px';
-
-                    listItem.appendChild(placeName);
                     listItem.appendChild(transportIcon);
-                    placesList.appendChild(listItem);
-                });
-
-                dateDiv.appendChild(placesList);
-                summaryContent.appendChild(dateDiv);
+                }
+                placesList.appendChild(listItem);
             });
-        }
+
+            dateDiv.appendChild(placesList);
+            summaryContent.appendChild(dateDiv);
+        });
         modal.style.display = 'block';
     });
 
@@ -254,6 +263,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    saveTripButton.addEventListener('click', saveTripPlan);
-});
+    saveTripButton.addEventListener('click', () => {
+        tripNameInput.value = '';
+        saveModal.style.display = 'block';
+    });
 
+    confirmSaveButton.addEventListener('click', () => {
+        const tripName = tripNameInput.value.trim();
+        if (tripName) {
+            saveTripPlan(tripName);
+            saveModal.style.display = 'none';
+        } else {
+            alert('Please enter a trip name.');
+        }
+    });
+
+    saveSpan.onclick = function () {
+        saveModal.style.display = 'none';
+    };
+
+    loadSpan.onclick = function () {
+        loadModal.style.display = 'none';
+    };
+
+    window.onclick = function (event) {
+        if (event.target == saveModal || event.target == loadModal) {
+            saveModal.style.display = 'none';
+            loadModal.style.display = 'none';
+        }
+    };
+});

@@ -13,6 +13,23 @@ header {
     color: white;
     text-align: center;
     padding: 1em 0;
+    position: relative;
+}
+
+header button {
+    position: absolute;
+    left: 1em;
+    top: 1em;
+    background-color: #fff;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    padding: 0.5em 1em;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+header button:hover {
+    background-color: #f1f1f1;
 }
 
 main {
@@ -163,5 +180,10 @@ footer {
 .close:focus {
     color: black;
     text-decoration: none;
+    cursor: pointer;
+}
+
+/* Pointer cursor for trip list items */
+.trip-item {
     cursor: pointer;
 }
