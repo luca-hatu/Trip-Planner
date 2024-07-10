@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateInput = document.getElementById('date');
     const entryPriceInput = document.getElementById('entry-price');
     const transportPriceInput = document.getElementById('transport-price');
+    const descriptionInput = document.getElementById('description');
     const addPlaceButton = document.getElementById('add-place');
     const placesListContainer = document.getElementById('places-list-container');
     const viewSummaryButton = document.getElementById('view-summary');
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = dateInput.value;
         const entryPrice = parseFloat(entryPriceInput.value) || 0;
         const transportPrice = parseFloat(transportPriceInput.value) || 0;
+        const description = descriptionInput.value.trim();
 
         if (place !== '' && date !== '') {
             let dateContainer = document.querySelector(`[data-date="${date}"]`);
@@ -50,6 +52,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const placeName = document.createElement('span');
             placeName.textContent = place;
+            placeName.classList.add('place-name');
+            placeName.addEventListener('click', () => {
+                const descriptionPopup = document.createElement('div');
+                descriptionPopup.classList.add('popup');
+                descriptionPopup.innerHTML = `
+                    <h3>${place}</h3>
+                    <p>${description}</p>
+                `;
+                document.body.appendChild(descriptionPopup);
+
+                const closePopup = () => {
+                    descriptionPopup.remove();
+                };
+
+                descriptionPopup.addEventListener('click', closePopup);
+                descriptionPopup.querySelector('h3').addEventListener('click', e => {
+                    e.stopPropagation();
+                });
+            });
 
             const transportButtons = document.createElement('div');
             transportButtons.classList.add('transportation-buttons');
@@ -84,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 dateInput.value = date;
                 entryPriceInput.value = entryPrice;
                 transportPriceInput.value = transportPrice;
+                descriptionInput.value = description;
                 listItem.remove();
             });
 
@@ -102,12 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
             listItem.appendChild(placeActions);
             listItem.dataset.entryPrice = entryPrice;
             listItem.dataset.transportPrice = transportPrice;
+            listItem.dataset.description = description;
             placesList.appendChild(listItem);
 
             placeInput.value = '';
             dateInput.value = '';
             entryPriceInput.value = '';
             transportPriceInput.value = '';
+            descriptionInput.value = '';
         }
     });
 
@@ -119,11 +143,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const places = [];
             container.querySelectorAll('li').forEach(item => {
                 const place = item.querySelector('span').textContent;
+                const description = item.dataset.description;
                 const selectedTransport = item.querySelector('.transportation-buttons .selected');
                 const transportMode = selectedTransport ? selectedTransport.title.toLowerCase() : null;
                 const entryPrice = parseFloat(item.dataset.entryPrice);
                 const transportPrice = parseFloat(item.dataset.transportPrice);
-                places.push({ place, transportMode, entryPrice, transportPrice });
+                places.push({ place, description, transportMode, entryPrice, transportPrice });
             });
             tripPlan.push({ date, places });
         });
@@ -135,91 +160,108 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadTripPlan(tripName) {
         const savedTrips = JSON.parse(localStorage.getItem('savedTrips'));
         const tripPlan = savedTrips[tripName];
-        if (tripPlan) {
-            placesListContainer.innerHTML = '';
-            tripPlan.forEach(day => {
-                const { date, places } = day;
-                let dateContainer = document.querySelector(`[data-date="${date}"]`);
-                if (!dateContainer) {
-                    dateContainer = document.createElement('div');
-                    dateContainer.classList.add('date-container');
-                    dateContainer.dataset.date = date;
 
-                    const dateTitle = document.createElement('h3');
-                    dateTitle.textContent = new Date(date).toDateString();
-                    dateContainer.appendChild(dateTitle);
+        placesListContainer.innerHTML = '';
 
-                    const placesList = document.createElement('ul');
-                    dateContainer.appendChild(placesList);
+        tripPlan.forEach(day => {
+            const { date, places } = day;
+            let dateContainer = document.createElement('div');
+            dateContainer.classList.add('date-container');
+            dateContainer.dataset.date = date;
 
-                    placesListContainer.appendChild(dateContainer);
-                }
+            const dateTitle = document.createElement('h3');
+            dateTitle.textContent = new Date(date).toDateString();
+            dateContainer.appendChild(dateTitle);
 
-                const placesList = dateContainer.querySelector('ul');
-                places.forEach(placeObj => {
-                    const { place, transportMode, entryPrice, transportPrice } = placeObj;
-                    const listItem = document.createElement('li');
-                    const placeName = document.createElement('span');
-                    placeName.textContent = place;
+            const placesList = document.createElement('ul');
+            dateContainer.appendChild(placesList);
 
-                    const transportButtons = document.createElement('div');
-                    transportButtons.classList.add('transportation-buttons');
+            placesListContainer.appendChild(dateContainer);
 
-                    const transports = [
-                        { mode: 'train', icon: 'fas fa-train' },
-                        { mode: 'bus', icon: 'fas fa-bus' },
-                        { mode: 'bike', icon: 'fas fa-bicycle' },
-                        { mode: 'foot', icon: 'fas fa-walking' }
-                    ];
+            places.forEach(placeObj => {
+                const { place, description, transportMode, entryPrice, transportPrice } = placeObj;
+                const listItem = document.createElement('li');
+                const placeName = document.createElement('span');
+                placeName.textContent = place;
+                placeName.classList.add('place-name');
+                placeName.addEventListener('click', () => {
+                    const descriptionPopup = document.createElement('div');
+                    descriptionPopup.classList.add('popup');
+                    descriptionPopup.innerHTML = `
+                        <h3>${place}</h3>
+                        <p>${description}</p>
+                    `;
+                    document.body.appendChild(descriptionPopup);
 
-                    transports.forEach(transport => {
-                        const button = document.createElement('button');
-                        button.innerHTML = `<i class="${transport.icon}"></i>`;
-                        button.title = transport.mode.charAt(0).toUpperCase() + transport.mode.slice(1);
-                        if (transportMode === transport.mode) {
-                            button.classList.add('selected');
-                        }
-                        button.addEventListener('click', () => {
-                            const allButtons = transportButtons.querySelectorAll('button');
-                            allButtons.forEach(btn => btn.classList.remove('selected'));
-                            button.classList.add('selected');
-                        });
-                        transportButtons.appendChild(button);
+                    const closePopup = () => {
+                        descriptionPopup.remove();
+                    };
+
+                    descriptionPopup.addEventListener('click', closePopup);
+                    descriptionPopup.querySelector('h3').addEventListener('click', e => {
+                        e.stopPropagation();
                     });
-
-                    const placeActions = document.createElement('span');
-                    placeActions.classList.add('place-actions');
-
-                    const editButton = document.createElement('button');
-                    editButton.classList.add('edit-place');
-                    editButton.textContent = 'Edit';
-                    editButton.addEventListener('click', () => {
-                        placeInput.value = placeName.textContent;
-                        dateInput.value = date;
-                        entryPriceInput.value = entryPrice;
-                        transportPriceInput.value = transportPrice;
-                        listItem.remove();
-                    });
-
-                    const deleteButton = document.createElement('button');
-                    deleteButton.classList.add('delete-place');
-                    deleteButton.textContent = 'Delete';
-                    deleteButton.addEventListener('click', () => {
-                        listItem.remove();
-                    });
-
-                    placeActions.appendChild(editButton);
-                    placeActions.appendChild(deleteButton);
-
-                    listItem.appendChild(placeName);
-                    listItem.appendChild(transportButtons);
-                    listItem.appendChild(placeActions);
-                    listItem.dataset.entryPrice = entryPrice;
-                    listItem.dataset.transportPrice = transportPrice;
-                    placesList.appendChild(listItem);
                 });
+
+                const transportButtons = document.createElement('div');
+                transportButtons.classList.add('transportation-buttons');
+
+                const transports = [
+                    { mode: 'train', icon: 'fas fa-train' },
+                    { mode: 'bus', icon: 'fas fa-bus' },
+                    { mode: 'bike', icon: 'fas fa-bicycle' },
+                    { mode: 'foot', icon: 'fas fa-walking' }
+                ];
+
+                transports.forEach(transport => {
+                    const button = document.createElement('button');
+                    button.innerHTML = `<i class="${transport.icon}"></i>`;
+                    button.title = transport.mode.charAt(0).toUpperCase() + transport.mode.slice(1);
+                    if (transportMode === transport.mode) {
+                        button.classList.add('selected');
+                    }
+                    button.addEventListener('click', () => {
+                        const allButtons = transportButtons.querySelectorAll('button');
+                        allButtons.forEach(btn => btn.classList.remove('selected'));
+                        button.classList.add('selected');
+                    });
+                    transportButtons.appendChild(button);
+                });
+
+                const placeActions = document.createElement('span');
+                placeActions.classList.add('place-actions');
+
+                const editButton = document.createElement('button');
+                editButton.classList.add('edit-place');
+                editButton.textContent = 'Edit';
+                editButton.addEventListener('click', () => {
+                    placeInput.value = placeName.textContent;
+                    dateInput.value = date;
+                    entryPriceInput.value = entryPrice;
+                    transportPriceInput.value = transportPrice;
+                    descriptionInput.value = description;
+                    listItem.remove();
+                });
+
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-place');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => {
+                    listItem.remove();
+                });
+
+                placeActions.appendChild(editButton);
+                placeActions.appendChild(deleteButton);
+
+                listItem.appendChild(placeName);
+                listItem.appendChild(transportButtons);
+                listItem.appendChild(placeActions);
+                listItem.dataset.entryPrice = entryPrice;
+                listItem.dataset.transportPrice = transportPrice;
+                listItem.dataset.description = description;
+                placesList.appendChild(listItem);
             });
-        }
+        });
     }
 
     loadTripsButton.addEventListener('click', () => {
@@ -252,26 +294,71 @@ document.addEventListener('DOMContentLoaded', () => {
             const placesList = document.createElement('ul');
             container.querySelectorAll('li').forEach(item => {
                 const place = item.querySelector('span').textContent;
+                const description = item.dataset.description;
                 const selectedTransport = item.querySelector('.transportation-buttons .selected i');
                 const transportIcon = selectedTransport ? selectedTransport.cloneNode(true) : null;
                 const listItem = document.createElement('li');
                 const placeName = document.createElement('span');
                 placeName.textContent = place;
+                placeName.classList.add('place-name');
+                placeName.addEventListener('click', () => {
+                    const descriptionPopup = document.createElement('div');
+                    descriptionPopup.classList.add('popup');
+                    descriptionPopup.innerHTML = `
+                        <h3>${place}</h3>
+                        <p>${description}</p>
+                    `;
+                    document.body.appendChild(descriptionPopup);
 
-                const entryPrice = parseFloat(item.dataset.entryPrice);
-                const transportPrice = parseFloat(item.dataset.transportPrice);
-                const placeCost = entryPrice + transportPrice;
-                totalCost += placeCost;
+                    const closePopup = () => {
+                        descriptionPopup.remove();
+                    };
+
+                    descriptionPopup.addEventListener('click', closePopup);
+                    descriptionPopup.querySelector('h3').addEventListener('click', e => {
+                        e.stopPropagation();
+                    });
+                });
+
+                const placeActions = document.createElement('span');
+                placeActions.classList.add('place-actions');
+
+                const editButton = document.createElement('button');
+                editButton.classList.add('edit-place');
+                editButton.textContent = 'Edit';
+                editButton.addEventListener('click', () => {
+                    placeInput.value = placeName.textContent;
+                    dateInput.value = date;
+                    entryPriceInput.value = entryPrice;
+                    transportPriceInput.value = transportPrice;
+                    descriptionInput.value = description;
+                    listItem.remove();
+                });
+
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-place');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => {
+                    listItem.remove();
+                });
+
+                placeActions.appendChild(editButton);
+                placeActions.appendChild(deleteButton);
 
                 listItem.appendChild(placeName);
+                listItem.appendChild(placeActions);
                 if (transportIcon) {
                     transportIcon.style.marginLeft = '10px';
                     listItem.appendChild(transportIcon);
                 }
                 const costSpan = document.createElement('span');
+                const entryPrice = parseFloat(item.dataset.entryPrice);
+                const transportPrice = parseFloat(item.dataset.transportPrice);
+                const placeCost = entryPrice + transportPrice;
                 costSpan.textContent = ` ($${placeCost.toFixed(2)})`;
                 listItem.appendChild(costSpan);
                 placesList.appendChild(listItem);
+                totalCost += placeCost;
             });
 
             dateDiv.appendChild(placesList);
@@ -321,4 +408,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
-
