@@ -1,29 +1,40 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const addPlaceButton = document.getElementById('add-place');
+    const placesListContainer = document.getElementById('places-list-container');
+    const viewSummaryButton = document.getElementById('view-summary');
+    const saveTripButton = document.getElementById('save-trip');
+    const loadTripsButton = document.getElementById('load-trips');
+    const summaryModal = document.getElementById('summary-modal');
+    const saveModal = document.getElementById('save-modal');
+    const loadModal = document.getElementById('load-modal');
+    const itineraryModal = document.getElementById('itinerary-modal');
+    const detailsModal = document.getElementById('details-modal');
+    const shareModal = document.getElementById('share-modal');
+    const span = summaryModal.getElementsByClassName('close')[0];
+    const saveSpan = saveModal.getElementsByClassName('close')[0];
+    const loadSpan = loadModal.getElementsByClassName('close')[0];
+    const itinerarySpan = itineraryModal.getElementsByClassName('close')[0];
+    const detailsSpan = detailsModal.getElementsByClassName('close')[0];
+    const shareSpan = shareModal.getElementsByClassName('close')[0];
+    const saveItineraryButton = document.getElementById('save-itinerary');
+    const confirmSaveButton = document.getElementById('confirm-save');
+    const copyLinkButton = document.getElementById('copy-link');
     const destinationInput = document.getElementById('destination');
     const placeInput = document.getElementById('place');
     const dateInput = document.getElementById('date');
     const entryPriceInput = document.getElementById('entry-price');
     const transportPriceInput = document.getElementById('transport-price');
     const descriptionInput = document.getElementById('description');
-    const addPlaceButton = document.getElementById('add-place');
-    const placesListContainer = document.getElementById('places-list-container');
-    const viewSummaryButton = document.getElementById('view-summary');
-    const saveTripButton = document.getElementById('save-trip');
-    const modal = document.getElementById('summary-modal');
+    const tripNameInput = document.getElementById('trip-name');
+    const stationInput = document.getElementById('station');
+    const lineInput = document.getElementById('line');
+    const directionInput = document.getElementById('direction');
     const summaryContent = document.getElementById('summary-content');
     const totalCostElement = document.getElementById('total-cost');
-    const span = document.getElementsByClassName('close')[0];
-    const saveModal = document.getElementById('save-modal');
-    const saveSpan = saveModal.getElementsByClassName('close')[0];
-    const confirmSaveButton = document.getElementById('confirm-save');
-    const tripNameInput = document.getElementById('trip-name');
-    const loadModal = document.getElementById('load-modal');
-    const loadSpan = loadModal.getElementsByClassName('close')[0];
-    const loadTripsButton = document.getElementById('load-trips');
     const tripList = document.getElementById('trip-list');
-    const shareTripButton = document.getElementById('share-trip');
     const shareLinkInput = document.getElementById('share-link');
-    const copyLinkButton = document.getElementById('copy-link');
+    const detailsContent = document.getElementById('details-content');
+    let currentPlaceItem = null;
 
     addPlaceButton.addEventListener('click', () => {
         const place = placeInput.value.trim();
@@ -32,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const transportPrice = parseFloat(transportPriceInput.value) || 0;
         const description = descriptionInput.value.trim();
 
-        if (place !== '' && date !== '') {
+        if (place && date) {
             let dateContainer = document.querySelector(`[data-date="${date}"]`);
             if (!dateContainer) {
                 dateContainer = document.createElement('div');
@@ -56,49 +67,57 @@ document.addEventListener('DOMContentLoaded', () => {
             const placeName = document.createElement('span');
             placeName.textContent = place;
             placeName.classList.add('place-name');
-            placeName.addEventListener('click', () => {
-                const descriptionPopup = document.createElement('div');
-                descriptionPopup.classList.add('popup');
-                descriptionPopup.innerHTML = `
-                    <h3>${place}</h3>
-                    <p>${description}</p>
-                `;
-                document.body.appendChild(descriptionPopup);
 
-                const closePopup = () => {
-                    descriptionPopup.remove();
-                };
+            const transportIcons = ['walking', 'car', 'bus', 'train'].map(type => {
+                const icon = document.createElement('i');
+                icon.classList.add('fas', `fa-${type}`, 'transport-icon');
+                icon.dataset.transportType = type;
 
-                descriptionPopup.addEventListener('click', closePopup);
-                descriptionPopup.querySelector('h3').addEventListener('click', e => {
-                    e.stopPropagation();
+                icon.addEventListener('click', () => {
+                    listItem.dataset.transportType = type;
+                    transportIcons.forEach(icon => icon.classList.remove('selected'));
+                    icon.classList.add('selected');
                 });
+
+                return icon;
             });
 
-            const transportButtons = document.createElement('div');
-            transportButtons.classList.add('transportation-buttons');
-
-            const transports = [
-                { mode: 'train', icon: 'fas fa-train' },
-                { mode: 'bus', icon: 'fas fa-bus' },
-                { mode: 'bike', icon: 'fas fa-bicycle' },
-                { mode: 'foot', icon: 'fas fa-walking' }
-            ];
-
-            transports.forEach(transport => {
-                const button = document.createElement('button');
-                button.innerHTML = `<i class="${transport.icon}"></i>`;
-                button.title = transport.mode.charAt(0).toUpperCase() + transport.mode.slice(1);
-                button.addEventListener('click', () => {
-                    const allButtons = transportButtons.querySelectorAll('button');
-                    allButtons.forEach(btn => btn.classList.remove('selected'));
-                    button.classList.add('selected');
-                });
-                transportButtons.appendChild(button);
-            });
-
-            const placeActions = document.createElement('span');
+            const placeActions = document.createElement('div');
             placeActions.classList.add('place-actions');
+
+            const shareButton = document.createElement('button');
+            shareButton.classList.add('share-button');
+            shareButton.innerHTML = '<i class="fas fa-share"></i> Share';
+            shareButton.addEventListener('click', () => {
+                const url = window.location.href.split('#')[0];
+                const shareUrl = `${url}#trip=${encodeURIComponent(JSON.stringify(listItem.dataset))}`;
+                shareLinkInput.value = shareUrl;
+                shareModal.style.display = 'block';
+            });
+
+            const itineraryButton = document.createElement('button');
+            itineraryButton.classList.add('itinerary-button');
+            itineraryButton.textContent = 'Itinerary';
+            itineraryButton.addEventListener('click', () => {
+                currentPlaceItem = listItem;
+                itineraryModal.style.display = 'block';
+            });
+
+            const viewDetailsButton = document.createElement('button');
+            viewDetailsButton.classList.add('view-details');
+            viewDetailsButton.textContent = 'Details';
+            viewDetailsButton.addEventListener('click', () => {
+                detailsContent.innerHTML = `
+                    <p><strong>Place:</strong> ${place}</p>
+                    <p><strong>Date:</strong> ${new Date(date).toDateString()}</p>
+                    <p><strong>Entry Price:</strong> $${entryPrice.toFixed(2)}</p>
+                    <p><strong>Transport Price:</strong> $${transportPrice.toFixed(2)}</p>
+                    <p><strong>Transport Type:</strong> ${listItem.dataset.transportType || 'Not set'}</p>
+                    <p><strong>Description:</strong> ${description}</p>
+                    <p><strong>Itinerary:</strong> ${listItem.dataset.itinerary || 'Not set'}</p>
+                `;
+                detailsModal.style.display = 'block';
+            });
 
             const editButton = document.createElement('button');
             editButton.classList.add('edit-place');
@@ -119,11 +138,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 listItem.remove();
             });
 
+            transportIcons.forEach(icon => placeActions.appendChild(icon));
+            placeActions.appendChild(shareButton);
+            placeActions.appendChild(itineraryButton);
+            placeActions.appendChild(viewDetailsButton);
             placeActions.appendChild(editButton);
             placeActions.appendChild(deleteButton);
-
             listItem.appendChild(placeName);
-            listItem.appendChild(transportButtons);
             listItem.appendChild(placeActions);
             listItem.dataset.entryPrice = entryPrice;
             listItem.dataset.transportPrice = transportPrice;
@@ -138,304 +159,289 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function saveTripPlan(tripName) {
-        const tripPlan = [];
-        const dateContainers = document.querySelectorAll('.date-container');
-        dateContainers.forEach(container => {
-            const date = container.dataset.date;
-            const places = [];
-            container.querySelectorAll('li').forEach(item => {
-                const place = item.querySelector('span').textContent;
-                const description = item.dataset.description;
-                const selectedTransport = item.querySelector('.transportation-buttons .selected');
-                const transportMode = selectedTransport ? selectedTransport.title.toLowerCase() : null;
-                const entryPrice = parseFloat(item.dataset.entryPrice);
-                const transportPrice = parseFloat(item.dataset.transportPrice);
-                places.push({ place, description, transportMode, entryPrice, transportPrice });
-            });
-            tripPlan.push({ date, places });
-        });
-        const savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || {};
-        savedTrips[tripName] = tripPlan;
-        localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
-    }
-
-    function loadTripPlan(tripName) {
-        const savedTrips = JSON.parse(localStorage.getItem('savedTrips'));
-        const tripPlan = savedTrips[tripName];
-
-        placesListContainer.innerHTML = '';
-
-        tripPlan.forEach(day => {
-            const { date, places } = day;
-            let dateContainer = document.createElement('div');
-            dateContainer.classList.add('date-container');
-            dateContainer.dataset.date = date;
-
-            const dateTitle = document.createElement('h3');
-            dateTitle.textContent = new Date(date).toDateString();
-            dateContainer.appendChild(dateTitle);
-
-            const placesList = document.createElement('ul');
-            dateContainer.appendChild(placesList);
-
-            placesListContainer.appendChild(dateContainer);
-
-            places.forEach(placeObj => {
-                const { place, description, transportMode, entryPrice, transportPrice } = placeObj;
-                const listItem = document.createElement('li');
-                const placeName = document.createElement('span');
-                placeName.textContent = place;
-                placeName.classList.add('place-name');
-                placeName.addEventListener('click', () => {
-                    const descriptionPopup = document.createElement('div');
-                    descriptionPopup.classList.add('popup');
-                    descriptionPopup.innerHTML = `
-                        <h3>${place}</h3>
-                        <p>${description}</p>
-                    `;
-                    document.body.appendChild(descriptionPopup);
-
-                    const closePopup = () => {
-                        descriptionPopup.remove();
-                    };
-
-                    descriptionPopup.addEventListener('click', closePopup);
-                    descriptionPopup.querySelector('h3').addEventListener('click', e => {
-                        e.stopPropagation();
-                    });
-                });
-
-                const transportButtons = document.createElement('div');
-                transportButtons.classList.add('transportation-buttons');
-
-                const transports = [
-                    { mode: 'train', icon: 'fas fa-train' },
-                    { mode: 'bus', icon: 'fas fa-bus' },
-                    { mode: 'bike', icon: 'fas fa-bicycle' },
-                    { mode: 'foot', icon: 'fas fa-walking' }
-                ];
-
-                transports.forEach(transport => {
-                    const button = document.createElement('button');
-                    button.innerHTML = `<i class="${transport.icon}"></i>`;
-                    button.title = transport.mode.charAt(0).toUpperCase() + transport.mode.slice(1);
-                    if (transportMode === transport.mode) {
-                        button.classList.add('selected');
-                    }
-                    button.addEventListener('click', () => {
-                        const allButtons = transportButtons.querySelectorAll('button');
-                        allButtons.forEach(btn => btn.classList.remove('selected'));
-                        button.classList.add('selected');
-                    });
-                    transportButtons.appendChild(button);
-                });
-
-                const placeActions = document.createElement('span');
-                placeActions.classList.add('place-actions');
-
-                const editButton = document.createElement('button');
-                editButton.classList.add('edit-place');
-                editButton.textContent = 'Edit';
-                editButton.addEventListener('click', () => {
-                    placeInput.value = placeName.textContent;
-                    dateInput.value = date;
-                    entryPriceInput.value = entryPrice;
-                    transportPriceInput.value = transportPrice;
-                    descriptionInput.value = description;
-                    listItem.remove();
-                });
-
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('delete-place');
-                deleteButton.textContent = 'Delete';
-                deleteButton.addEventListener('click', () => {
-                    listItem.remove();
-                });
-
-                placeActions.appendChild(editButton);
-                placeActions.appendChild(deleteButton);
-
-                listItem.appendChild(placeName);
-                listItem.appendChild(transportButtons);
-                listItem.appendChild(placeActions);
-                listItem.dataset.entryPrice = entryPrice;
-                listItem.dataset.transportPrice = transportPrice;
-                listItem.dataset.description = description;
-                placesList.appendChild(listItem);
-            });
-        });
-    }
-
     viewSummaryButton.addEventListener('click', () => {
-        summaryContent.innerHTML = '';
-        let totalCost = 0;
         const dateContainers = document.querySelectorAll('.date-container');
-        dateContainers.forEach(container => {
-            const date = container.dataset.date;
-            const dateDiv = document.createElement('div');
-            const dateTitle = document.createElement('h3');
-            dateTitle.textContent = new Date(date).toDateString();
-            dateDiv.appendChild(dateTitle);
+        let totalCost = 0;
 
-            const placesList = document.createElement('ul');
-            container.querySelectorAll('li').forEach(item => {
-                const place = item.querySelector('span').textContent;
-                const description = item.dataset.description;
-                const selectedTransport = item.querySelector('.transportation-buttons .selected i');
-                const transportIcon = selectedTransport ? selectedTransport.cloneNode(true) : null;
-                const listItem = document.createElement('li');
-                const placeName = document.createElement('span');
-                placeName.textContent = place;
-                placeName.classList.add('place-name');
-                placeName.addEventListener('click', () => {
-                    const descriptionPopup = document.createElement('div');
-                    descriptionPopup.classList.add('popup');
-                    descriptionPopup.innerHTML = `
-                        <h3>${place}</h3>
-                        <p>${description}</p>
-                    `;
-                    document.body.appendChild(descriptionPopup);
+        summaryContent.innerHTML = '';
+        dateContainers.forEach(dateContainer => {
+            const date = dateContainer.dataset.date;
+            const placesList = dateContainer.querySelector('ul');
+            const places = placesList.querySelectorAll('li');
 
-                    const closePopup = () => {
-                        descriptionPopup.remove();
-                    };
+            places.forEach(place => {
+                const placeName = place.querySelector('.place-name').textContent;
+                const entryPrice = parseFloat(place.dataset.entryPrice) || 0;
+                const transportPrice = parseFloat(place.dataset.transportPrice) || 0;
+                const transportType = place.dataset.transportType || 'Not set';
+                const description = place.dataset.description || '';
+                const itinerary = place.dataset.itinerary || 'Not set';
 
-                    descriptionPopup.addEventListener('click', closePopup);
-                    descriptionPopup.querySelector('h3').addEventListener('click', e => {
-                        e.stopPropagation();
-                    });
-                });
+                totalCost += entryPrice + transportPrice;
 
-                const placeActions = document.createElement('span');
-                placeActions.classList.add('place-actions');
+                const placeSummary = document.createElement('div');
+                placeSummary.classList.add('place-summary');
+                placeSummary.innerHTML = `
+                    <p><strong>Place:</strong> ${placeName}</p>
+                    <p><strong>Date:</strong> ${new Date(date).toDateString()}</p>
+                    <p><strong>Entry Price:</strong> $${entryPrice.toFixed(2)}</p>
+                    <p><strong>Transport Price:</strong> $${transportPrice.toFixed(2)}</p>
+                    <p><strong>Transport Type:</strong> ${transportType}</p>
+                    <p><strong>Description:</strong> ${description}</p>
+                    <p><strong>Itinerary:</strong> ${itinerary}</p>
+                `;
 
-                const editButton = document.createElement('button');
-                editButton.classList.add('edit-place');
-                editButton.textContent = 'Edit';
-                editButton.addEventListener('click', () => {
-                    placeInput.value = placeName.textContent;
-                    dateInput.value = date;
-                    entryPriceInput.value = entryPrice;
-                    transportPriceInput.value = transportPrice;
-                    descriptionInput.value = description;
-                    listItem.remove();
-                });
-
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('delete-place');
-                deleteButton.textContent = 'Delete';
-                deleteButton.addEventListener('click', () => {
-                    listItem.remove();
-                });
-
-                placeActions.appendChild(editButton);
-                placeActions.appendChild(deleteButton);
-
-                listItem.appendChild(placeName);
-                listItem.appendChild(placeActions);
-                if (transportIcon) {
-                    transportIcon.style.marginLeft = '10px';
-                    listItem.appendChild(transportIcon);
-                }
-                const costSpan = document.createElement('span');
-                const entryPrice = parseFloat(item.dataset.entryPrice);
-                const transportPrice = parseFloat(item.dataset.transportPrice);
-                const placeCost = entryPrice + transportPrice;
-                costSpan.textContent = ` ($${placeCost.toFixed(2)})`;
-                listItem.appendChild(costSpan);
-                placesList.appendChild(listItem);
-                totalCost += placeCost;
+                summaryContent.appendChild(placeSummary);
             });
-
-            dateDiv.appendChild(placesList);
-            summaryContent.appendChild(dateDiv);
         });
+
         totalCostElement.textContent = totalCost.toFixed(2);
-        modal.style.display = 'block';
+        summaryModal.style.display = 'block';
     });
-
-    span.onclick = function () {
-        modal.style.display = 'none';
-    };
-
-    window.onclick = function (event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    };
 
     saveTripButton.addEventListener('click', () => {
-        tripNameInput.value = '';
         saveModal.style.display = 'block';
     });
+
+    loadTripsButton.addEventListener('click', () => {
+        loadModal.style.display = 'block';
+        loadTripList();
+    });
+
+    function loadTripList() {
+        tripList.innerHTML = '';
+        Object.keys(localStorage).forEach(key => {
+            if (key !== 'length' && key !== 'key') {
+                const tripItem = document.createElement('div');
+                tripItem.classList.add('trip-item');
+                tripItem.textContent = key;
+                tripItem.addEventListener('click', () => {
+                    const tripData = JSON.parse(localStorage.getItem(key));
+                    loadTripDetails(tripData);
+                    loadModal.style.display = 'none';
+                });
+                tripList.appendChild(tripItem);
+            }
+        });
+    }
+
+    function loadTripDetails(tripData) {
+        destinationInput.value = tripData.destination;
+        placesListContainer.innerHTML = '';
+        tripData.places.forEach(placeData => {
+            let dateContainer = document.querySelector(`[data-date="${placeData.date}"]`);
+            if (!dateContainer) {
+                dateContainer = document.createElement('div');
+                dateContainer.classList.add('date-container');
+                dateContainer.dataset.date = placeData.date;
+
+                const dateTitle = document.createElement('h3');
+                dateTitle.textContent = new Date(placeData.date).toDateString();
+                dateContainer.appendChild(dateTitle);
+
+                const placesList = document.createElement('ul');
+                dateContainer.appendChild(placesList);
+
+                placesListContainer.appendChild(dateContainer);
+            }
+
+            const placesList = dateContainer.querySelector('ul');
+
+            const listItem = document.createElement('li');
+
+            const placeName = document.createElement('span');
+            placeName.textContent = placeData.name;
+            placeName.classList.add('place-name');
+
+            const transportIcons = ['walking', 'car', 'bus', 'train'].map(type => {
+                const icon = document.createElement('i');
+                icon.classList.add('fas', `fa-${type}`, 'transport-icon');
+                icon.dataset.transportType = type;
+
+                if (placeData.transportType === type) {
+                    icon.classList.add('selected');
+                }
+
+                icon.addEventListener('click', () => {
+                    listItem.dataset.transportType = type;
+                    transportIcons.forEach(icon => icon.classList.remove('selected'));
+                    icon.classList.add('selected');
+                });
+
+                return icon;
+            });
+
+            const placeActions = document.createElement('div');
+            placeActions.classList.add('place-actions');
+
+            const shareButton = document.createElement('button');
+            shareButton.classList.add('share-button');
+            shareButton.innerHTML = '<i class="fas fa-share"></i> Share';
+            shareButton.addEventListener('click', () => {
+                const url = window.location.href.split('#')[0];
+                const shareUrl = `${url}#trip=${encodeURIComponent(JSON.stringify(listItem.dataset))}`;
+                shareLinkInput.value = shareUrl;
+                shareModal.style.display = 'block';
+            });
+
+            const itineraryButton = document.createElement('button');
+            itineraryButton.classList.add('itinerary-button');
+            itineraryButton.textContent = 'Itinerary';
+            itineraryButton.addEventListener('click', () => {
+                currentPlaceItem = listItem;
+                itineraryModal.style.display = 'block';
+            });
+
+            const viewDetailsButton = document.createElement('button');
+            viewDetailsButton.classList.add('view-details');
+            viewDetailsButton.textContent = 'Details';
+            viewDetailsButton.addEventListener('click', () => {
+                detailsContent.innerHTML = `
+                    <p><strong>Place:</strong> ${placeData.name}</p>
+                    <p><strong>Date:</strong> ${new Date(placeData.date).toDateString()}</p>
+                    <p><strong>Entry Price:</strong> $${placeData.entryPrice.toFixed(2)}</p>
+                    <p><strong>Transport Price:</strong> $${placeData.transportPrice.toFixed(2)}</p>
+                    <p><strong>Transport Type:</strong> ${placeData.transportType || 'Not set'}</p>
+                    <p><strong>Description:</strong> ${placeData.description}</p>
+                    <p><strong>Itinerary:</strong> ${placeData.itinerary || 'Not set'}</p>
+                `;
+                detailsModal.style.display = 'block';
+            });
+
+            const editButton = document.createElement('button');
+            editButton.classList.add('edit-place');
+            editButton.textContent = 'Edit';
+            editButton.addEventListener('click', () => {
+                placeInput.value = placeName.textContent;
+                dateInput.value = placeData.date;
+                entryPriceInput.value = placeData.entryPrice;
+                transportPriceInput.value = placeData.transportPrice;
+                descriptionInput.value = placeData.description;
+                listItem.remove();
+            });
+
+            const deleteButton = document.createElement('button');
+            deleteButton.classList.add('delete-place');
+            deleteButton.textContent = 'Delete';
+            deleteButton.addEventListener('click', () => {
+                listItem.remove();
+            });
+
+            transportIcons.forEach(icon => placeActions.appendChild(icon));
+            placeActions.appendChild(shareButton);
+            placeActions.appendChild(itineraryButton);
+            placeActions.appendChild(viewDetailsButton);
+            placeActions.appendChild(editButton);
+            placeActions.appendChild(deleteButton);
+            listItem.appendChild(placeName);
+            listItem.appendChild(placeActions);
+            listItem.dataset.entryPrice = placeData.entryPrice;
+            listItem.dataset.transportPrice = placeData.transportPrice;
+            listItem.dataset.description = placeData.description;
+            listItem.dataset.itinerary = placeData.itinerary;
+            placesList.appendChild(listItem);
+        });
+    }
 
     confirmSaveButton.addEventListener('click', () => {
         const tripName = tripNameInput.value.trim();
         if (tripName) {
-            saveTripPlan(tripName);
+            const tripData = {
+                destination: destinationInput.value,
+                places: []
+            };
+
+            const dateContainers = document.querySelectorAll('.date-container');
+            dateContainers.forEach(dateContainer => {
+                const date = dateContainer.dataset.date;
+                const placesList = dateContainer.querySelector('ul');
+                const places = placesList.querySelectorAll('li');
+
+                places.forEach(place => {
+                    const placeData = {
+                        name: place.querySelector('.place-name').textContent,
+                        date: date,
+                        entryPrice: parseFloat(place.dataset.entryPrice) || 0,
+                        transportPrice: parseFloat(place.dataset.transportPrice) || 0,
+                        transportType: place.dataset.transportType || 'Not set',
+                        description: place.dataset.description || '',
+                        itinerary: place.dataset.itinerary || ''
+                    };
+                    tripData.places.push(placeData);
+                });
+            });
+
+            localStorage.setItem(tripName, JSON.stringify(tripData));
+            alert('Trip saved successfully!');
             saveModal.style.display = 'none';
         } else {
             alert('Please enter a trip name.');
         }
     });
 
-    saveSpan.onclick = function () {
+    span.onclick = function() {
+        summaryModal.style.display = 'none';
+    };
+
+    saveSpan.onclick = function() {
         saveModal.style.display = 'none';
     };
 
-    loadTripsButton.addEventListener('click', () => {
-        tripList.innerHTML = '';
-        const savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || {};
-        for (const tripName in savedTrips) {
-            const tripItem = document.createElement('div');
-            tripItem.textContent = tripName;
-            tripItem.classList.add('trip-item');
-            tripItem.addEventListener('click', () => {
-                loadTripPlan(tripName);
-                loadModal.style.display = 'none';
-            });
-            tripList.appendChild(tripItem);
-        }
-        loadModal.style.display = 'block';
-    });
-
-    loadSpan.onclick = function () {
+    loadSpan.onclick = function() {
         loadModal.style.display = 'none';
     };
 
-    shareTripButton.addEventListener('click', () => {
-        const shareableLink = generateShareableLink();
-        shareLinkInput.value = shareableLink;
-        document.getElementById('share-link-container').style.display = 'block';
+    itinerarySpan.onclick = function() {
+        itineraryModal.style.display = 'none';
+    };
+
+    detailsSpan.onclick = function() {
+        detailsModal.style.display = 'none';
+    };
+
+    shareSpan.onclick = function() {
+        shareModal.style.display = 'none';
+    };
+
+    saveItineraryButton.addEventListener('click', () => {
+        if (currentPlaceItem) {
+            const station = stationInput.value.trim();
+            const line = lineInput.value.trim();
+            const direction = directionInput.value.trim();
+
+            if (station !== '' && line !== '' && direction !== '') {
+                const itinerary = `Station: ${station}, Line: ${line}, Direction: ${direction}`;
+                currentPlaceItem.dataset.itinerary = itinerary;
+
+                itineraryModal.style.display = 'none';
+                stationInput.value = '';
+                lineInput.value = '';
+                directionInput.value = '';
+            }
+        }
     });
 
     copyLinkButton.addEventListener('click', () => {
         shareLinkInput.select();
+        shareLinkInput.setSelectionRange(0, 99999); /* For mobile devices */
         document.execCommand('copy');
+        alert('Link copied to clipboard');
     });
 
-    function generateShareableLink() {
-        const tripData = [];
-        const dateContainers = document.querySelectorAll('.date-container');
-        dateContainers.forEach(container => {
-            const date = container.dataset.date;
-            const places = [];
-            container.querySelectorAll('li').forEach(item => {
-                const place = item.querySelector('span').textContent;
-                const description = item.dataset.description;
-                const selectedTransport = item.querySelector('.transportation-buttons .selected i');
-                const transportIcon = selectedTransport ? selectedTransport.className : '';
-                const entryPrice = parseFloat(item.dataset.entryPrice);
-                const transportPrice = parseFloat(item.dataset.transportPrice);
-                places.push({ place, description, transportIcon, entryPrice, transportPrice });
-            });
-            tripData.push({ date, places });
-        });
-
-        const tripDataString = encodeURIComponent(JSON.stringify(tripData));
-        const url = `${window.location.origin}/view-trip.html?tripData=${tripDataString}`;
-
-        return url;
-    }
+    window.onclick = function(event) {
+        if (event.target == summaryModal) {
+            summaryModal.style.display = 'none';
+        } else if (event.target == saveModal) {
+            saveModal.style.display = 'none';
+        } else if (event.target == loadModal) {
+            loadModal.style.display = 'none';
+        } else if (event.target == itineraryModal) {
+            itineraryModal.style.display = 'none';
+        } else if (event.target == detailsModal) {
+            detailsModal.style.display = 'none';
+        } else if (event.target == shareModal) {
+            shareModal.style.display = 'none';
+        }
+    };
 });
+

@@ -31,13 +31,12 @@
         </section>
         <button id="view-summary">View Summary</button>
         <button id="save-trip">Save Trip Plan</button>
-        <button id="share-trip">Share Trip</button>
     </main>
     <footer>
         <p>&copy; 2024 Trip Planner</p>
     </footer>
 
-    <!-- Modal for Trip Summary -->
+    <!-- Add Modal for Trip Summary -->
     <div id="summary-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -47,7 +46,7 @@
         </div>
     </div>
 
-    <!-- Modal for Saving Trip -->
+    <!-- Add Modal for Saving Trip -->
     <div id="save-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -57,7 +56,7 @@
         </div>
     </div>
 
-    <!-- Modal for Loading Trips -->
+    <!-- Add Modal for Loading Trips -->
     <div id="load-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
@@ -68,11 +67,32 @@
         </div>
     </div>
 
-    <!-- Modal for Sharing Trip Link -->
-    <div id="share-link-container" class="modal">
+    <!-- Add Modal for Itinerary Details -->
+    <div id="itinerary-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Share Trip</h2>
+            <h2>Itinerary Details</h2>
+            <input type="text" id="station" placeholder="Enter station...">
+            <input type="text" id="line" placeholder="Enter line...">
+            <input type="text" id="direction" placeholder="Enter direction...">
+            <button id="save-itinerary">Save</button>
+        </div>
+    </div>
+
+    <!-- Add Modal for Place Details -->
+    <div id="details-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Place Details</h2>
+            <div id="details-content"></div>
+        </div>
+    </div>
+
+    <!-- Share Link Modal -->
+    <div id="share-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Share Trip Plan</h2>
             <input type="text" id="share-link" readonly>
             <button id="copy-link">Copy Link</button>
         </div>
@@ -81,5 +101,6 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 

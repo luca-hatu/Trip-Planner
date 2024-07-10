@@ -251,3 +251,75 @@ footer {
     font-size: 14px;
     cursor: pointer;
 }
+/* Add to styles.css */
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Transport type icons */
+.transport-icon {
+    margin-right: 8px;
+}
+
+/* Styling for place items */
+.place-name {
+    cursor: pointer;
+    display: inline-block;
+}
+
+.place-actions {
+    margin-left: 20px;
+}
+
+button.view-details {
+    margin-left: 10px;
+}
+
+.transport-icons {
+    display: flex;
+    align-items: center;
+}
+
+.transport-icon {
+    cursor: pointer;
+    font-size: 1.2em; /* Slightly smaller */
+    margin: 0 5px;
+    color: #555;
+}
+
+.transport-icon.selected {
+    color: #4CAF50; /* Green color for selected transport icon */
+}
