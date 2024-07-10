@@ -2,12 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const destinationInput = document.getElementById('destination');
     const placeInput = document.getElementById('place');
     const dateInput = document.getElementById('date');
+    const entryPriceInput = document.getElementById('entry-price');
+    const transportPriceInput = document.getElementById('transport-price');
     const addPlaceButton = document.getElementById('add-place');
     const placesListContainer = document.getElementById('places-list-container');
     const viewSummaryButton = document.getElementById('view-summary');
     const saveTripButton = document.getElementById('save-trip');
     const modal = document.getElementById('summary-modal');
     const summaryContent = document.getElementById('summary-content');
+    const totalCostElement = document.getElementById('total-cost');
     const span = document.getElementsByClassName('close')[0];
     const saveModal = document.getElementById('save-modal');
     const saveSpan = saveModal.getElementsByClassName('close')[0];
@@ -21,6 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
     addPlaceButton.addEventListener('click', () => {
         const place = placeInput.value.trim();
         const date = dateInput.value;
+        const entryPrice = parseFloat(entryPriceInput.value) || 0;
+        const transportPrice = parseFloat(transportPriceInput.value) || 0;
+
         if (place !== '' && date !== '') {
             let dateContainer = document.querySelector(`[data-date="${date}"]`);
             if (!dateContainer) {
@@ -76,6 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
             editButton.addEventListener('click', () => {
                 placeInput.value = placeName.textContent;
                 dateInput.value = date;
+                entryPriceInput.value = entryPrice;
+                transportPriceInput.value = transportPrice;
                 listItem.remove();
             });
 
@@ -92,10 +100,14 @@ document.addEventListener('DOMContentLoaded', () => {
             listItem.appendChild(placeName);
             listItem.appendChild(transportButtons);
             listItem.appendChild(placeActions);
+            listItem.dataset.entryPrice = entryPrice;
+            listItem.dataset.transportPrice = transportPrice;
             placesList.appendChild(listItem);
 
             placeInput.value = '';
             dateInput.value = '';
+            entryPriceInput.value = '';
+            transportPriceInput.value = '';
         }
     });
 
@@ -109,7 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const place = item.querySelector('span').textContent;
                 const selectedTransport = item.querySelector('.transportation-buttons .selected');
                 const transportMode = selectedTransport ? selectedTransport.title.toLowerCase() : null;
-                places.push({ place, transportMode });
+                const entryPrice = parseFloat(item.dataset.entryPrice);
+                const transportPrice = parseFloat(item.dataset.transportPrice);
+                places.push({ place, transportMode, entryPrice, transportPrice });
             });
             tripPlan.push({ date, places });
         });
@@ -143,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const placesList = dateContainer.querySelector('ul');
                 places.forEach(placeObj => {
-                    const { place, transportMode } = placeObj;
+                    const { place, transportMode, entryPrice, transportPrice } = placeObj;
                     const listItem = document.createElement('li');
                     const placeName = document.createElement('span');
                     placeName.textContent = place;
@@ -182,6 +196,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     editButton.addEventListener('click', () => {
                         placeInput.value = placeName.textContent;
                         dateInput.value = date;
+                        entryPriceInput.value = entryPrice;
+                        transportPriceInput.value = transportPrice;
                         listItem.remove();
                     });
 
@@ -198,6 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     listItem.appendChild(placeName);
                     listItem.appendChild(transportButtons);
                     listItem.appendChild(placeActions);
+                    listItem.dataset.entryPrice = entryPrice;
+                    listItem.dataset.transportPrice = transportPrice;
                     placesList.appendChild(listItem);
                 });
             });
@@ -222,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     viewSummaryButton.addEventListener('click', () => {
         summaryContent.innerHTML = '';
+        let totalCost = 0;
         const dateContainers = document.querySelectorAll('.date-container');
         dateContainers.forEach(container => {
             const date = container.dataset.date;
@@ -239,17 +258,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const placeName = document.createElement('span');
                 placeName.textContent = place;
 
+                const entryPrice = parseFloat(item.dataset.entryPrice);
+                const transportPrice = parseFloat(item.dataset.transportPrice);
+                const placeCost = entryPrice + transportPrice;
+                totalCost += placeCost;
+
                 listItem.appendChild(placeName);
                 if (transportIcon) {
                     transportIcon.style.marginLeft = '10px';
                     listItem.appendChild(transportIcon);
                 }
+                const costSpan = document.createElement('span');
+                costSpan.textContent = ` ($${placeCost.toFixed(2)})`;
+                listItem.appendChild(costSpan);
                 placesList.appendChild(listItem);
             });
 
             dateDiv.appendChild(placesList);
             summaryContent.appendChild(dateDiv);
         });
+        totalCostElement.textContent = totalCost.toFixed(2);
         modal.style.display = 'block';
     });
 
@@ -293,3 +321,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 });
+

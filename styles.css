@@ -187,3 +187,12 @@ footer {
 .trip-item {
     cursor: pointer;
 }
+/* No changes to the existing CSS, except the .trip-item and additional styles if necessary */
+.trip-item {
+    cursor: pointer;
+}
+
+#total-cost {
+    color: #4CAF50;
+    font-weight: bold;
+}

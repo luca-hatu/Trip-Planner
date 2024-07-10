@@ -21,6 +21,8 @@
             <h2>Places to Visit</h2>
             <input type="text" id="place" placeholder="Enter a place...">
             <input type="date" id="date">
+            <input type="number" id="entry-price" placeholder="Entry price ($)">
+            <input type="number" id="transport-price" placeholder="Transport price ($)">
             <button id="add-place">Add Place</button>
         </section>
         <section class="places-list-container" id="places-list-container">
@@ -39,6 +41,7 @@
             <span class="close">&times;</span>
             <h2>Trip Summary</h2>
             <div id="summary-content"></div>
+            <h3>Total Estimated Cost: $<span id="total-cost">0.00</span></h3>
         </div>
     </div>
 
@@ -66,4 +69,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
