@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadSpan = loadModal.getElementsByClassName('close')[0];
     const loadTripsButton = document.getElementById('load-trips');
     const tripList = document.getElementById('trip-list');
+    const shareTripButton = document.getElementById('share-trip');
+    const shareLinkInput = document.getElementById('share-link');
+    const copyLinkButton = document.getElementById('copy-link');
 
     addPlaceButton.addEventListener('click', () => {
         const place = placeInput.value.trim();
@@ -264,22 +267,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    loadTripsButton.addEventListener('click', () => {
-        tripList.innerHTML = '';
-        const savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || {};
-        for (const tripName in savedTrips) {
-            const tripItem = document.createElement('div');
-            tripItem.textContent = tripName;
-            tripItem.classList.add('trip-item');
-            tripItem.addEventListener('click', () => {
-                loadTripPlan(tripName);
-                loadModal.style.display = 'none';
-            });
-            tripList.appendChild(tripItem);
-        }
-        loadModal.style.display = 'block';
-    });
-
     viewSummaryButton.addEventListener('click', () => {
         summaryContent.innerHTML = '';
         let totalCost = 0;
@@ -397,14 +384,58 @@ document.addEventListener('DOMContentLoaded', () => {
         saveModal.style.display = 'none';
     };
 
+    loadTripsButton.addEventListener('click', () => {
+        tripList.innerHTML = '';
+        const savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || {};
+        for (const tripName in savedTrips) {
+            const tripItem = document.createElement('div');
+            tripItem.textContent = tripName;
+            tripItem.classList.add('trip-item');
+            tripItem.addEventListener('click', () => {
+                loadTripPlan(tripName);
+                loadModal.style.display = 'none';
+            });
+            tripList.appendChild(tripItem);
+        }
+        loadModal.style.display = 'block';
+    });
+
     loadSpan.onclick = function () {
         loadModal.style.display = 'none';
     };
 
-    window.onclick = function (event) {
-        if (event.target == saveModal || event.target == loadModal) {
-            saveModal.style.display = 'none';
-            loadModal.style.display = 'none';
-        }
-    };
+    shareTripButton.addEventListener('click', () => {
+        const shareableLink = generateShareableLink();
+        shareLinkInput.value = shareableLink;
+        document.getElementById('share-link-container').style.display = 'block';
+    });
+
+    copyLinkButton.addEventListener('click', () => {
+        shareLinkInput.select();
+        document.execCommand('copy');
+    });
+
+    function generateShareableLink() {
+        const tripData = [];
+        const dateContainers = document.querySelectorAll('.date-container');
+        dateContainers.forEach(container => {
+            const date = container.dataset.date;
+            const places = [];
+            container.querySelectorAll('li').forEach(item => {
+                const place = item.querySelector('span').textContent;
+                const description = item.dataset.description;
+                const selectedTransport = item.querySelector('.transportation-buttons .selected i');
+                const transportIcon = selectedTransport ? selectedTransport.className : '';
+                const entryPrice = parseFloat(item.dataset.entryPrice);
+                const transportPrice = parseFloat(item.dataset.transportPrice);
+                places.push({ place, description, transportIcon, entryPrice, transportPrice });
+            });
+            tripData.push({ date, places });
+        });
+
+        const tripDataString = encodeURIComponent(JSON.stringify(tripData));
+        const url = `${window.location.origin}/view-trip.html?tripData=${tripDataString}`;
+
+        return url;
+    }
 });

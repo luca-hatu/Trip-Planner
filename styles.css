@@ -234,3 +234,20 @@ footer {
     text-decoration: none;
     cursor: pointer;
 }
+#share-link-container {
+    display: none;
+    margin-top: 10px;
+}
+
+#share-link {
+    width: 300px;
+    padding: 5px;
+    font-size: 14px;
+    margin-right: 5px;
+}
+
+#copy-link {
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
