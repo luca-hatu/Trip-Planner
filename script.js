@@ -209,7 +209,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 places.forEach(placeObj => {
                     const { place, transportMode } = placeObj;
                     const listItem = document.createElement('li');
-                    listItem.textContent = `${place} - ${transportMode ? transportMode.charAt(0).toUpperCase() + transportMode.slice(1) : 'No transport selected'}`;
+                    const placeName = document.createElement('span');
+                    placeName.textContent = place;
+
+                    const transportIcon = document.createElement('i');
+                    switch (transportMode) {
+                        case 'train':
+                            transportIcon.className = 'fas fa-train';
+                            break;
+                        case 'bus':
+                            transportIcon.className = 'fas fa-bus';
+                            break;
+                        case 'bike':
+                            transportIcon.className = 'fas fa-bicycle';
+                            break;
+                        case 'foot':
+                            transportIcon.className = 'fas fa-walking';
+                            break;
+                        default:
+                            transportIcon.className = '';
+                            break;
+                    }
+                    transportIcon.style.marginLeft = '10px';
+
+                    listItem.appendChild(placeName);
+                    listItem.appendChild(transportIcon);
                     placesList.appendChild(listItem);
                 });
 
@@ -232,3 +256,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     saveTripButton.addEventListener('click', saveTripPlan);
 });
+
