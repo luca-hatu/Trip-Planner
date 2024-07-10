@@ -1,12 +1,32 @@
 document.addEventListener('DOMContentLoaded', () => {
     const destinationInput = document.getElementById('destination');
     const placeInput = document.getElementById('place');
+    const dateInput = document.getElementById('date');
     const addPlaceButton = document.getElementById('add-place');
-    const placesList = document.getElementById('places-list');
+    const placesListContainer = document.getElementById('places-list-container');
 
     addPlaceButton.addEventListener('click', () => {
         const place = placeInput.value.trim();
-        if (place !== '') {
+        const date = dateInput.value;
+        if (place !== '' && date !== '') {
+            let dateContainer = document.querySelector(`[data-date="${date}"]`);
+            if (!dateContainer) {
+                dateContainer = document.createElement('div');
+                dateContainer.classList.add('date-container');
+                dateContainer.dataset.date = date;
+
+                const dateTitle = document.createElement('h3');
+                dateTitle.textContent = new Date(date).toDateString();
+                dateContainer.appendChild(dateTitle);
+
+                const placesList = document.createElement('ul');
+                dateContainer.appendChild(placesList);
+
+                placesListContainer.appendChild(dateContainer);
+            }
+
+            const placesList = dateContainer.querySelector('ul');
+
             const listItem = document.createElement('li');
 
             const placeName = document.createElement('span');
@@ -27,15 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.innerHTML = `<i class="${transport.icon}"></i>`;
                 button.title = transport.mode.charAt(0).toUpperCase() + transport.mode.slice(1);
                 button.addEventListener('click', () => {
-                    // Remove 'selected' class from all buttons
                     const allButtons = transportButtons.querySelectorAll('button');
                     allButtons.forEach(btn => btn.classList.remove('selected'));
-
-                    // Add 'selected' class to the clicked button
                     button.classList.add('selected');
-
-                    // Optionally, you can show an alert or update some other state
-                    // alert(`You chose ${transport.mode} for ${place}`);
                 });
                 transportButtons.appendChild(button);
             });
@@ -45,11 +59,18 @@ document.addEventListener('DOMContentLoaded', () => {
             placesList.appendChild(listItem);
 
             placeInput.value = '';
+            dateInput.value = '';
             placeInput.focus();
         }
     });
 
     placeInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+            addPlaceButton.click();
+        }
+    });
+
+    dateInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
             addPlaceButton.click();
         }
